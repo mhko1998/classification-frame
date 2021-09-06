@@ -9,11 +9,12 @@ device=torch.device('cuda:2' if torch.cuda.is_available() else'cpu')
 
 trainloader,testloader=dataloader.data_loader()
 
-net1 = getnet.Net().to(device)
+net1 = getnet.Net1()
+net1 = net1.to(device)
 
 criterion = nn.CrossEntropyLoss()
 
-optimizer=optim.optimizer1
+optimizer=optim.getoptim()
 
 maxi = 0
 for epoch in range(21):
@@ -35,7 +36,6 @@ for epoch in range(21):
         net1.eval()
         correct = 0
         total = 0
-        preloss = 0
         with torch.no_grad():
             for i, data in tqdm(enumerate(testloader,0)):
                 images1, labels = data[0].to(device), data[1].to(device)
@@ -44,7 +44,6 @@ for epoch in range(21):
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
-
         print('Accuracy of the network on the test images: %d %%' %(100*correct/total))
         print(correct , total)
 print('Finished Training')

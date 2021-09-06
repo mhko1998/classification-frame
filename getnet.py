@@ -25,7 +25,3 @@ class Net(nn.Module):
         x = F.relu(self.fc1(x))
         x=self.fc3(x)
         return x
-
-def Net1():
-    net=torchvision.models.resnet152(pretrained=True)
-    return net

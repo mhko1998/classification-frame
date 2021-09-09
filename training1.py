@@ -42,7 +42,8 @@ def DDPtraining(rank,net1,trainloader,optimizer,criterion,epoch):
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
-        
+
+    
     print('[%d] loss: %.3f' % (epoch + 1, running_loss /len(trainloader)))
     print(len(trainloader))
     

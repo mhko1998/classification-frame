@@ -51,7 +51,7 @@ def data_loader():
     testloader=torch.utils.data.DataLoader(testset,batch_size=batch_size,shuffle=False,num_workers=8)
     return trainloader, testloader
 
-def DDP_data_loader(rank,world_size):
+def DDP_data_loader(rank, world_size):
     trans=transforms.Compose([transforms.Resize(256),transforms.CenterCrop(224),transforms.ToTensor(),transforms.Normalize((0.485,0.456,0.406),(0.229,0.224,0.225))])
     
     trainimages= glob.glob('/home/minhwan/KFOOD_small1/original/train/*/*.jpg')

@@ -11,8 +11,7 @@ import dataloader
 import os
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-def DDPrun(gpu, args):
-    rank=args.nr*args.gpus+gpu
+def DDPrun(rank, args):
     dist.init_process_group(
         backend='nccl',
         init_method='env://',
@@ -20,16 +19,15 @@ def DDPrun(gpu, args):
         rank=rank
     )
     
-    torch.cuda.set_device(gpu)
-    trainloader,testloader=dataloader.DDP_data_loader(rank,args.world_size)
+    trainloader, testloader = dataloader.DDP_data_loader(rank, args.world_size)
     
-    net=getnet.Net().cuda(gpu)
-    ddp_model=DDP(net,device_ids=[gpu])
+    net=getnet.Net().cuda(rank)
+    ddp_model=DDP(net,device_ids=[rank])
 
-    criterion=nn.CrossEntropyLoss().cuda(gpu)
+    criterion=nn.CrossEntropyLoss().cuda(rank)
     optimizer=getoptim.getoptim(ddp_model)
         
     for epoch in range(21):
-        training1.DDPtraining(rank,ddp_model,trainloader,optimizer,criterion,epoch)
+        training1.DDPtraining(rank, ddp_model, trainloader, optimizer, criterion,epoch)
 
     dist.destroy_process_group()

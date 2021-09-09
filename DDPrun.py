@@ -31,3 +31,5 @@ def DDPrun(gpu, args):
         
     for epoch in range(21):
         training1.DDPtraining(rank,ddp_model,trainloader,optimizer,criterion,epoch)
+
+    dist.destroy_process_group()

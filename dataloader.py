@@ -64,8 +64,7 @@ def DDP_data_loader(rank,world_size):
     batch_size=32
     train_sampler=dist.DistributedSampler(
         dataset=trainset,
-        batch_size=batch_size,
-        num_replica=world_size,
+        num_replicas=world_size,
         rank=rank
     )
 

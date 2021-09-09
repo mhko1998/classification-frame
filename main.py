@@ -1,25 +1,26 @@
-import torch
-import dataloader
-import getnet
-import optim
-import torch.nn as nn
-import training1
-import test1
-device=torch.device('cuda:2' if torch.cuda.is_available() else'cpu')
+import Simrun
+import DDPrun
+import torch.multiprocessing as mp
+import os
+import argparse
 
-trainloader,testloader=dataloader.data_loader()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-n', '--nodes', default=1,
+                        type=int, metavar='N',help='number of data loading workers (default: 4)')
+    parser.add_argument('-g', '--gpus', default=1, type=int,
+                        help='number of gpus per node')
+    parser.add_argument('-nr', '--nr', default=0, type=int,
+                        help='ranking within the nodes')
+    parser.add_argument('--epochs', default=2, type=int, 
+                        metavar='N',
+                        help='number of total epochs to run')
+    args = parser.parse_args()
 
-net1 = getnet.Net()
-net1 = net1.to(device)
-
-criterion = nn.CrossEntropyLoss()
-
-optimizer=optim.getoptim(net1)
-
-maxi = 0
-for epoch in range(21):
-    training1.train(net1,trainloader,optimizer,criterion,device,epoch)
-
-    if epoch % 5 == 0:
-        test1.test(net1,testloader,criterion,device)
-print('Finished Training')
+    args.world_size = args.gpus * args.nodes
+    os.environ['MASTER_ADDR'] = '172.27.183.200'
+    os.environ['MASTER_PORT'] = '6006'
+    mp.spawn(DDPrun.DDPrun, nprocs=args.gpus, args=(args,))
+    
+if __name__=="__main__":
+    main()

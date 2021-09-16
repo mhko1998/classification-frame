@@ -9,6 +9,7 @@ import getoptim
 import training1
 import dataloader
 import os
+import neptune
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 def DDPrun(rank, args):
@@ -27,7 +28,7 @@ def DDPrun(rank, args):
     criterion=nn.CrossEntropyLoss().cuda(rank)
     optimizer=getoptim.getoptim(ddp_model)
         
-    for epoch in range(21):
+    for epoch in range(args.num_epochs):
         training1.DDPtraining(rank, ddp_model, trainloader, optimizer, criterion,epoch)
 
     dist.destroy_process_group()

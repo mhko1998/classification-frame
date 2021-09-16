@@ -4,13 +4,33 @@ import torch.multiprocessing as mp
 import os
 import argparse
 import random
+import neptune.new as neptune
+from neptune.new.types import File
+import logger
+
+run=neptune.init(project_qualified_name='mhko1998/class',api_token='eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjOGQ5Y2U4OC0xZWIzLTQyZjQtYWIyMy0wNTA5N2ExMzg2N2IifQ==')
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-g', '--gpus', default='3,4', type=str,
                         help='the number for used gpus')
+    parser.add_argument('--num_epochs',type=int,default=20)
+    parser.add_argument('--batch_size',type=int,default=32)
+    parser.add_argument('--learning_rate',type=int,default=0.0001)
+    parser.add_argument('--seed',type=int,default=2020)
     args = parser.parse_args()
-
+    
     args.world_size = len(args.gpus.split(','))
+
+    parameters={
+        'dense_units':128,
+        'activation':'relu',
+        'dropout':0.23,
+        'learning_rate': 0.15,
+        'batch_size':64,
+        'n_epochs':30,
+    }
+    run['model/parameter']=parameters
     
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpus
     

@@ -2,7 +2,7 @@ import neptune
 import torch
 import torch.distributed as dist
 from tqdm import tqdm
-import DDPrun
+
 def train(net1,trainloader,optimizer,criterion,device,epoch):
     net1.train()
     running_loss = 0.0
@@ -17,7 +17,6 @@ def train(net1,trainloader,optimizer,criterion,device,epoch):
         running_loss += loss.item()
     print('[%d] loss: %.3f' % (epoch + 1, running_loss /len(trainloader)))
     print(len(trainloader))
-
 
 def test(net1,testloader,device):
     net1.eval()
@@ -45,10 +44,7 @@ def DDPtraining(rank,net1,trainloader,optimizer,criterion,epoch):
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
+        run["loss"].log(loss)
 
-        run["train/epoch/loss"].log(loss)
-
-    
     print('[%d] loss: %.3f' % (epoch + 1, running_loss /len(trainloader)))
     print(len(trainloader))
-    

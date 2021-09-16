@@ -30,5 +30,4 @@ def DDPrun(rank, args):
         
     for epoch in range(args.num_epochs):
         training1.DDPtraining(rank, ddp_model, trainloader, optimizer, criterion,epoch)
-
     dist.destroy_process_group()

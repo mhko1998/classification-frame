@@ -21,25 +21,34 @@ def DDPrun(rank, args):
         rank=rank
     )
     
-    trainloader, testloader = dataloader.DDP_data_loader(rank, args.world_size)
+    trainloader, testloader = dataloader.DDP_data_loader(rank, args.world_size,args.datadir)
     
-    net=getnet.Net().cuda(rank)
-    ddp_model=DDP(net,device_ids=[rank])
+    net=getnet.Net()
+    optimizer=getoptim.getoptim(net)
 
-    criterion=nn.CrossEntropyLoss().cuda(rank)
-    optimizer=getoptim.getoptim(ddp_model)
     if args.load==True:
-        loading.LOAD(ddp_model,optimizer)
-    run=neptune.init(api_token='eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjOGQ5Y2U4OC0xZWIzLTQyZjQtYWIyMy0wNTA5N2ExMzg2N2IifQ==',project='mhko1998/class')
-    max=0
+        loading.LOAD(net, optimizer, args=args)
+
+    net = net.to(rank)
+    ddp_model=DDP(net,device_ids=[rank])
+    optimizer=getoptim.getoptim(ddp_model)
+    criterion=nn.CrossEntropyLoss().cuda(rank)
+    
+    if args.world_size>1 and (rank == 0 or rank == 'cuda'):
+        mode = 'async'
+    else:
+        mode = 'debug'
+
+    run=neptune.init(api_token='eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjOGQ5Y2U4OC0xZWIzLTQyZjQtYWIyMy0wNTA5N2ExMzg2N2IifQ==',project='mhko1998/class',mode=mode)
+    max = 0
     for epoch in range(args.num_epochs):
-        a=training1.DDPtraining(rank, ddp_model, trainloader, optimizer, criterion,epoch)
-        run["loss"].log(a)
+        training1.DDPtraining(rank, ddp_model, trainloader, optimizer, criterion, epoch, run)
+        
         if epoch%5==0:
-            b=training1.DDPtest(rank,ddp_model,testloader,optimizer)
-            run["acc"].log(b)
-        if max<b:
-            max=b
-            loading.SAVE(ddp_model,optimizer,epoch)
-            
+            acc = training1.DDPtest(rank,ddp_model,testloader,run,max)
+        
+        if max<acc:
+            max=acc
+            loading.SAVE(ddp_model, optimizer, epoch, args)
+
     dist.destroy_process_group()

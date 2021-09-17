@@ -33,7 +33,7 @@ def test(net1,testloader,device):
     print('Accuracy of the network on the test images: %d %%' %(100*correct/total))
     print(correct , total)
 
-def DDPtraining(rank,net1,trainloader,optimizer,criterion,epoch):
+def DDPtraining(rank,net1,trainloader,optimizer,criterion,epoch, run):
     net1.train()
     running_loss = 0.0
     for i, data in tqdm(enumerate(trainloader, 0)):
@@ -47,17 +47,16 @@ def DDPtraining(rank,net1,trainloader,optimizer,criterion,epoch):
         avg_loss=running_loss/len(trainloader)
     print('[%d] loss: %.3f' % (epoch + 1, avg_loss))
     print(len(trainloader))
-    return avg_loss
-    
+    run['loss'].log(avg_loss)
 
-def DDPtest(rank,net1,testloader,optimizer):
+def DDPtest(rank,net1, testloader, run, max):
     net1.eval()
+    print(max)
     correct=0
     total=0
     with torch.no_grad():
         for i, data in tqdm(enumerate(testloader,0)):
             inputs1, labels = data[0].to(rank), data[1].to(rank)
-            optimizer.zero_grad()
             outputs=net1(inputs1).to(rank)
             _, predicted= torch.max(outputs.data,1)
             total+=labels.size(0)
@@ -65,4 +64,7 @@ def DDPtest(rank,net1,testloader,optimizer):
         acc=100*correct/total
         print('Accuracy of the network on the test images: %d %%'%(100*correct/total))
         print(correct ,total)
+        run['acc'].log(acc)
     return acc
+            
+        

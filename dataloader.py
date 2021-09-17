@@ -1,10 +1,12 @@
 import torch
 import glob
 import torchvision.transforms as transforms
+import os
 import argparse
 from torch.utils.data import Dataset
 from PIL import Image
 import argparse
+import main
 import torch.utils.data.distributed as dist
 
 class ImageDataLoader(Dataset):
@@ -36,43 +38,31 @@ class ImageDataLoader(Dataset):
         image=self.transform(image)
         return image, label
 
-
-def data_loader():
-    trans=transforms.Compose([transforms.Resize(256),transforms.CenterCrop(224),transforms.ToTensor(),transforms.Normalize((0.485,0.456,0.406),(0.229,0.224,0.225))])
-
-    trainimages= glob.glob('/home/minhwan/KFOOD_small1/original/train/*/*.jpg')
-    traindir = glob.glob('/home/minhwan/KFOOD_small1/original/train/*')
-
-    testimages=glob.glob('/home/minhwan/KFOOD_small1/original/test/*/*.jpg')
-    testdir = glob.glob('/home/minhwan/KFOOD_small1/original/test/*')
-    trainset=ImageDataLoader(traindir,trainimages,trans)
-    testset=ImageDataLoader(testdir,testimages,trans)
-    batch_size=32
-    trainloader=torch.utils.data.DataLoader(trainset,batch_size=batch_size,shuffle=True,num_workers=8)
-    testloader=torch.utils.data.DataLoader(testset,batch_size=batch_size,shuffle=False,num_workers=8)
-    return trainloader, testloader
-
-def DDP_data_loader(rank, world_size):
+def DDP_data_loader(rank, world_size,basedir):
     trans=transforms.Compose([transforms.Resize(256),transforms.CenterCrop(224),transforms.ToTensor(),transforms.Normalize((0.485,0.456,0.406),(0.229,0.224,0.225))])
     
-    trainimages= glob.glob('/home/minhwan/KFOOD_small1/original/train/*/*.jpg')
-    traindir = glob.glob('/home/minhwan/KFOOD_small1/original/train/*')
+    trainimages= glob.glob(os.path.join(basedir,'train/*/*.jpg'))
+    traindir = glob.glob(os.path.join(basedir,'train/*'))
 
-    testimages=glob.glob('/home/minhwan/KFOOD_small1/original/test/*/*.jpg')
-    testdir = glob.glob('/home/minhwan/KFOOD_small1/original/test/*')
+    testimages=glob.glob(os.path.join(basedir,'test/*/*.jpg'))
+    testdir = glob.glob(os.path.join(basedir,'test/*'))
     trainset=ImageDataLoader(traindir,trainimages,trans)
     testset=ImageDataLoader(testdir,testimages,trans)
     batch_size=32
-    train_sampler=dist.DistributedSampler(
-        dataset=trainset,
-        num_replicas=world_size,
-        rank=rank
-    )
-    test_sampler=dist.DistributedSampler(
-        dataset=testset,
-        num_replicas=world_size,
-        rank=rank
-    )
-    trainloader=torch.utils.data.DataLoader(trainset,batch_size=batch_size,shuffle=False,num_workers=8,pin_memory=True,sampler=train_sampler)
-    testloader=torch.utils.data.DataLoader(testset,batch_size=batch_size,shuffle=False,num_workers=8,pin_memory=True,sampler=train_sampler)
+    if world_size>1:
+        train_sampler=dist.DistributedSampler(
+            dataset=trainset,
+            num_replicas=world_size,
+            rank=rank
+        )
+        test_sampler=dist.DistributedSampler(
+            dataset=testset,
+            num_replicas=world_size,
+            rank=rank
+        )
+        trainloader=torch.utils.data.DataLoader(trainset,batch_size=batch_size,shuffle=False,num_workers=8,pin_memory=True,sampler=train_sampler)
+        testloader=torch.utils.data.DataLoader(testset,batch_size=batch_size,shuffle=False,num_workers=8,pin_memory=True,sampler=test_sampler)
+    else:
+        trainloader=torch.utils.data.DataLoader(trainset,batch_size=batch_size,shuffle=True,num_workers=8)
+        testloader=torch.utils.data.DataLoader(testset,batch_size=batch_size,shuffle=False,num_workers=8)
     return trainloader, testloader

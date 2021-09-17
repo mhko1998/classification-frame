@@ -1,16 +1,14 @@
-import Simrun
 import DDPrun
 import torch.multiprocessing as mp
 import os
 import argparse
 import random
-import neptune
-import logger
-
+import loading
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-g', '--gpus', default='3,4', type=str,
                         help='the number for used gpus')
+    parser.add_argument('-l','--load',default='True',type=bool)
     parser.add_argument('--num_epochs',type=int,default=20)
     parser.add_argument('--batch_size',type=int,default=32)
     parser.add_argument('--learning_rate',type=int,default=0.0001)

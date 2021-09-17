@@ -11,9 +11,7 @@ import torch.multiprocessing as mp
 from torch.nn.parallel import DistributedDataParallel as DDP
 def Simrun():
     device=torch.device('cuda:2' if torch.cuda.is_available() else'cpu')
-
     trainloader,testloader=dataloader.data_loader()
-
     net1 = getnet.Net()
     net1 = net1.to(device)
 

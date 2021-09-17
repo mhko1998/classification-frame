@@ -68,7 +68,11 @@ def DDP_data_loader(rank, world_size):
         num_replicas=world_size,
         rank=rank
     )
-
+    test_sampler=dist.DistributedSampler(
+        dataset=testset,
+        num_replicas=world_size,
+        rank=rank
+    )
     trainloader=torch.utils.data.DataLoader(trainset,batch_size=batch_size,shuffle=False,num_workers=8,pin_memory=True,sampler=train_sampler)
-    testloader=torch.utils.data.DataLoader(testset,batch_size=batch_size,shuffle=False,num_workers=8)
+    testloader=torch.utils.data.DataLoader(testset,batch_size=batch_size,shuffle=False,num_workers=8,pin_memory=True,sampler=train_sampler)
     return trainloader, testloader

@@ -13,7 +13,7 @@ import os
 import neptune.new as neptune
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-def DDPrun(rank, args, load):
+def DDPrun(rank, args):
     dist.init_process_group(
         backend='nccl',
         init_method='env://',
@@ -28,7 +28,7 @@ def DDPrun(rank, args, load):
 
     criterion=nn.CrossEntropyLoss().cuda(rank)
     optimizer=getoptim.getoptim(ddp_model)
-    if load==True:
+    if args.load==True:
         loading.LOAD(ddp_model,optimizer)
     run=neptune.init(api_token='eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjOGQ5Y2U4OC0xZWIzLTQyZjQtYWIyMy0wNTA5N2ExMzg2N2IifQ==',project='mhko1998/class')
     max=0

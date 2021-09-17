@@ -7,8 +7,6 @@ import random
 import neptune
 import logger
 
-run=neptune.init(project_qualified_name='mhko1998/class',api_token='eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJjOGQ5Y2U4OC0xZWIzLTQyZjQtYWIyMy0wNTA5N2ExMzg2N2IifQ==')
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-g', '--gpus', default='3,4', type=str,
